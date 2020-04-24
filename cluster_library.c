@@ -1059,7 +1059,7 @@ void cluster_init_cache(redisCluster *c, redisCachedCluster *cc) {
 PHP_REDIS_API int
 cluster_init_seeds(redisCluster *cluster, HashTable *ht_seeds) {
     RedisSock *redis_sock;
-    char *str, *psep, key[1024];
+    char *str, *pos, *psep, key[1024];
     int key_len, count, i;
     zval **z_seeds, *z_seed;
 
@@ -1080,7 +1080,12 @@ cluster_init_seeds(redisCluster *cluster, HashTable *ht_seeds) {
 
         /* Make sure we have a colon for host:port.  Search right to left in the
          * case of IPv6 */
-        if ((psep = strrchr(str, ':')) == NULL)
+        if ((pos = strstr(str, "://")) == NULL) {
+            psep = strrchr(str, ':');
+        } else {
+            psep = strrchr(pos + 3, ':');
+        }
+        if (psep == NULL)
             continue;
 
         // Allocate a structure for this seed
